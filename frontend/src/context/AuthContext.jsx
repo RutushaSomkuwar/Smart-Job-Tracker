@@ -41,7 +41,13 @@ export const AuthProvider = ({ children }) => {
       setUser(data.user);
       return data.user;
     } catch (err) {
-      const message = err.response?.data?.detail || 'Login failed. Please check your credentials.';
+      const message =
+        err.response?.data?.detail ||
+        (err.code === 'ERR_NETWORK'
+          ? 'Cannot connect to backend API. On Render free tier, the server takes ~30-45s to wake up on the first request. Please wait 15 seconds and try again!'
+          : null) ||
+        err.message ||
+        'Login failed. Please check your credentials.';
       setError(message);
       throw new Error(message);
     }
@@ -54,7 +60,13 @@ export const AuthProvider = ({ children }) => {
       // Auto login after registration
       return await login(email, password);
     } catch (err) {
-      const message = err.response?.data?.detail || 'Registration failed. Please try again.';
+      const message =
+        err.response?.data?.detail ||
+        (err.code === 'ERR_NETWORK'
+          ? 'Cannot connect to backend API. On Render free tier, the server takes ~30-45s to wake up on the first request. Please wait 15 seconds and try again!'
+          : null) ||
+        err.message ||
+        'Registration failed. Please try again.';
       setError(message);
       throw new Error(message);
     }

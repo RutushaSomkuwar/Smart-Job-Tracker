@@ -19,6 +19,31 @@ async def lifespan(app: FastAPI):
     try:
         Base.metadata.create_all(bind=engine)
         logger.info("Database tables initialized successfully.")
+        
+        # Auto-seed demo user if not existing
+        from app.database import SessionLocal
+        from app.models.user import User
+        from app.utils.security import get_password_hash
+        
+        db = SessionLocal()
+        try:
+            demo_email = "demo@jobtracker.dev"
+            demo_user = db.query(User).filter(User.email == demo_email).first()
+            if not demo_user:
+                logger.info(f"Seeding default demo user: {demo_email}")
+                demo_user = User(
+                    name="Alex Morgan",
+                    email=demo_email,
+                    hashed_password=get_password_hash("demo123456")
+                )
+                db.add(demo_user)
+                db.commit()
+                logger.info("Demo user seeded successfully.")
+        except Exception as seed_err:
+            logger.warning(f"Note on seeding demo user: {seed_err}")
+            db.rollback()
+        finally:
+            db.close()
     except Exception as e:
         logger.error(f"Error initializing database: {e}")
     yield
@@ -35,12 +60,10 @@ app = FastAPI(
 )
 
 # CORS Configuration
-# Allow development frontend origins
-origins = settings.CORS_ORIGINS if isinstance(settings.CORS_ORIGINS, list) else ["*"]
-
+# Allow any HTTP / HTTPS origin (Vercel, local dev, custom domains) with credentials
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origin_regex=r"^https?:\/\/.*",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
