@@ -4,6 +4,10 @@ from app.config import settings
 
 database_url = settings.DATABASE_URL
 
+# Fix for cloud databases providing postgres:// instead of postgresql://
+if database_url.startswith("postgres://"):
+    database_url = database_url.replace("postgres://", "postgresql://", 1)
+
 # Handle special connection args for SQLite vs PostgreSQL
 connect_args = {}
 if database_url.startswith("sqlite"):
