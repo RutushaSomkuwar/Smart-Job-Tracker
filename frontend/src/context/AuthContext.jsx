@@ -41,11 +41,14 @@ export const AuthProvider = ({ children }) => {
       setUser(data.user);
       return data.user;
     } catch (err) {
+      const isRender = import.meta.env.VITE_API_URL?.includes('render.com');
+      const networkErrorMessage = isRender
+        ? 'Cannot connect to backend API. On Render free tier, the server takes ~30-45s to wake up on the first request. Please wait 15 seconds and try again!'
+        : 'Cannot connect to backend API. Please make sure the FastAPI backend server is running on http://localhost:8000.';
+
       const message =
         err.response?.data?.detail ||
-        (err.code === 'ERR_NETWORK'
-          ? 'Cannot connect to backend API. On Render free tier, the server takes ~30-45s to wake up on the first request. Please wait 15 seconds and try again!'
-          : null) ||
+        (err.code === 'ERR_NETWORK' ? networkErrorMessage : null) ||
         err.message ||
         'Login failed. Please check your credentials.';
       setError(message);
@@ -60,11 +63,14 @@ export const AuthProvider = ({ children }) => {
       // Auto login after registration
       return await login(email, password);
     } catch (err) {
+      const isRender = import.meta.env.VITE_API_URL?.includes('render.com');
+      const networkErrorMessage = isRender
+        ? 'Cannot connect to backend API. On Render free tier, the server takes ~30-45s to wake up on the first request. Please wait 15 seconds and try again!'
+        : 'Cannot connect to backend API. Please make sure the FastAPI backend server is running on http://localhost:8000.';
+
       const message =
         err.response?.data?.detail ||
-        (err.code === 'ERR_NETWORK'
-          ? 'Cannot connect to backend API. On Render free tier, the server takes ~30-45s to wake up on the first request. Please wait 15 seconds and try again!'
-          : null) ||
+        (err.code === 'ERR_NETWORK' ? networkErrorMessage : null) ||
         err.message ||
         'Registration failed. Please try again.';
       setError(message);
